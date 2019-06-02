@@ -17,37 +17,39 @@ def select_face(im, r=10):
         print('Detect 0 Face !!!')
         exit(-1)
 
-    if len(faces) == 1:
-        bbox = faces[0]
-    else:
-        bbox = []
+    bbox = faces[0]
 
-        def click_on_face(event, x, y, flags, params):
-            if event != cv2.EVENT_LBUTTONDOWN:
-                return
-
-            for face in faces:
-                if face.left() < x < face.right() and face.top() < y < face.bottom():
-                    bbox.append(face)
-                    break
-        
-        im_copy = im.copy()
-        for face in faces:
-            # draw the face bounding box
-            cv2.rectangle(im_copy, (face.left(), face.top()), (face.right(), face.bottom()), (0, 0, 255), 1)
-        cv2.imshow('Click the Face:', im_copy)
-        cv2.setMouseCallback('Click the Face:', click_on_face)
-        while len(bbox) == 0:
-            cv2.waitKey(1)
-        cv2.destroyAllWindows()
-        bbox = bbox[0]
+        #    if len(faces) == 1:
+        #        bbox = faces[0]
+        #    else:
+        #        bbox = []
+        #
+        #        def click_on_face(event, x, y, flags, params):
+        #            if event != cv2.EVENT_LBUTTONDOWN:
+        #                return
+        #
+        #            for face in faces:
+        #                if face.left() < x < face.right() and face.top() < y < face.bottom():
+        #                    bbox.append(face)
+        #                    break
+        #
+        #        im_copy = im.copy()
+        #        for face in faces:
+        #            # draw the face bounding box
+        #            cv2.rectangle(im_copy, (face.left(), face.top()), (face.right(), face.bottom()), (0, 0, 255), 1)
+        #        cv2.imshow('Click the Face:', im_copy)
+        #        cv2.setMouseCallback('Click the Face:', click_on_face)
+        #        while len(bbox) == 0:
+        #            cv2.waitKey(1)
+        #        cv2.destroyAllWindows()
+        #        bbox = bbox[0]
 
     points = np.asarray(face_points_detection(im, bbox))
-    
+
     im_w, im_h = im.shape[:2]
     left, top = np.min(points, 0)
     right, bottom = np.max(points, 0)
-    
+
     x, y = max(0, left-r), max(0, top-r)
     w, h = min(right+r, im_h)-x, min(bottom+r, im_w)-y
 
@@ -74,7 +76,7 @@ if __name__ == '__main__':
     dst_points, dst_shape, dst_face = select_face(dst_img)
 
     h, w = dst_face.shape[:2]
-    
+
     ### Warp Image
     if not args.warp_2d:
         ## 3d warp
@@ -100,7 +102,7 @@ if __name__ == '__main__':
         warped_src_face = apply_mask(warped_src_face, mask)
         dst_face_masked = apply_mask(dst_face, mask)
         warped_src_face = correct_colours(dst_face_masked, warped_src_face, dst_points)
-    
+
     ## Shrink the mask
     kernel = np.ones((10, 10), np.uint8)
     mask = cv2.erode(mask, kernel, iterations=1)
@@ -115,15 +117,15 @@ if __name__ == '__main__':
     output = dst_img_cp
 
     dir_path = os.path.dirname(args.out)
+
     if not os.path.isdir(dir_path):
         os.makedirs(dir_path)
 
     cv2.imwrite(args.out, output)
 
-    ##For debug
+    ## For debug
     if not args.no_debug_window:
         cv2.imshow("From", dst_img)
         cv2.imshow("To", output)
         cv2.waitKey(0)
-        
         cv2.destroyAllWindows()
